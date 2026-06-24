@@ -6,6 +6,19 @@
 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
+Classes: Owner, Pet, Task, Scheduler
+Owner class:
+    Attributes: name, no of pets
+    Methods: Create owner
+Pet class:
+    Attributes: pet type,
+    Methods: Add a pet, Feed the pet, schedule a walk
+Task class:
+    Attributes: task title, task id
+    Methods: View tasks, Add tasks
+Scheduler class:
+    Attributes: task id, task title, task time
+    Methods: Prioritize tasks 
 
 **b. Design changes**
 
