@@ -16,9 +16,11 @@ class Owner:
 
     @classmethod
     def create_owner(cls, name: str) -> "Owner":
+        """Create a new Owner with no pets yet."""
         return cls(name=name, number_of_pets=0, pets=[])
 
     def add_pet(self, pet: "Pet") -> "Pet":
+        """Register a pet with this owner and keep the pet count in sync."""
         self.pets.append(pet)
         self.number_of_pets = len(self.pets)
         return pet
@@ -32,13 +34,16 @@ class Pet:
 
     @classmethod
     def add_pet(cls, pet_type: str, name: str) -> "Pet":
+        """Create a new Pet with no tasks yet."""
         return cls(pet_type=pet_type, name=name, tasks=[])
 
     def feed(self) -> None:
+        """Add a feeding task to this pet's task list."""
         task = Task.add_task("Feeding", duration_minutes=DEFAULT_TASK_DURATIONS["feed"], priority="high")
         self.tasks.append(task)
 
     def schedule_walk(self) -> None:
+        """Add a walk task to this pet's task list."""
         task = Task.add_task("Walk", duration_minutes=DEFAULT_TASK_DURATIONS["walk"], priority="medium")
         self.tasks.append(task)
 
@@ -56,11 +61,17 @@ class Task:
 
     @classmethod
     def add_task(cls, task_title: str, duration_minutes: int = 20, priority: str = "medium") -> "Task":
+        """Create a new Task with an auto-assigned, unique task_id."""
         task = cls(task_title=task_title, task_id=cls._next_id, duration_minutes=duration_minutes, priority=priority)
         cls._next_id += 1
         return task
 
+    def mark_complete(self) -> None:
+        """Mark this task as completed."""
+        self.completed = True
+
     def view_tasks(self) -> list:
+        """Return this task's fields as a single-row, display-ready list."""
         return [
             {
                 "task_id": self.task_id,
@@ -80,22 +91,20 @@ class Scheduler:
     task_time: str = ""
 
     def prioritize_tasks(self, tasks: list["Task"]) -> list["Task"]:
+        """Sort tasks by priority (high first), then by shorter duration."""
         return sorted(
             tasks,
             key=lambda t: (PRIORITY_ORDER.get(t.priority, len(PRIORITY_ORDER)), t.duration_minutes),
         )
 
     def view_daily_routines(self, owner: Owner) -> list:
+        """Return every task across all of an owner's pets."""
         return [task for pet in owner.pets for task in pet.tasks]
 
     def build_daily_schedule(
         self, owner: Owner, start_time: str = "08:00", available_minutes: Optional[int] = None
     ) -> list["Task"]:
-        """Order an owner's pending tasks by priority and assign start times.
-
-        Stops adding tasks once `available_minutes` would be exceeded, so a
-        busy owner still gets a schedule that fits in the time they actually have.
-        """
+        """Prioritize an owner's tasks and assign start times, skipping any that don't fit in available_minutes."""
         tasks = self.prioritize_tasks(self.view_daily_routines(owner))
         current_time = datetime.strptime(start_time, "%H:%M")
         elapsed_minutes = 0
