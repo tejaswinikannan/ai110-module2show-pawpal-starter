@@ -22,9 +22,9 @@ Scheduler class:
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
-Added the view daily routines method to the scheduler class
+- Added the view daily routines method to the scheduler class
+- Added a `pets` list attribute to `Owner` and a `tasks` list attribute to `Pet`, so the Scheduler can traverse `Owner -> Pet -> Task` to collect all tasks across an owner's pets
+- Updated `Scheduler.viewDailyRoutines()` to take an `Owner` as a parameter and return the flattened list of tasks from all of that owner's pets
 ---
 
 ## 2. Scheduling Logic and Tradeoffs

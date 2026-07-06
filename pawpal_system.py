@@ -7,6 +7,7 @@ from dataclasses import dataclass
 class Owner:
     name: str
     number_of_pets: int
+    pets: list["Pet"]
 
     def create_owner(self) -> "Owner":
         pass
@@ -16,6 +17,7 @@ class Owner:
 class Pet:
     pet_type: str
     name: str
+    tasks: list["Task"]
 
     def add_pet(self) -> "Pet":
         pass
@@ -48,5 +50,5 @@ class Scheduler:
     def prioritize_tasks(self) -> list:
         pass
 
-    def view_daily_routines(self) -> list:
-        pass
+    def view_daily_routines(self, owner: Owner) -> list:
+        return [task for pet in owner.pets for task in pet.tasks]

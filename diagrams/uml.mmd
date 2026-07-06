@@ -2,12 +2,14 @@ classDiagram
     class Owner {
         +String name
         +int numberOfPets
+        +List~Pet~ pets
         +createOwner() Owner
     }
 
     class Pet {
         +String petType
         +String name
+        +List~Task~ tasks
         +addPet() Pet
         +feed() void
         +scheduleWalk() void
@@ -25,7 +27,7 @@ classDiagram
         +String taskTitle
         +String taskTime
         +prioritizeTasks() List
-        +viewDailyRoutines() List
+        +viewDailyRoutines(Owner) List
     }
 
     Owner "1" --> "1..*" Pet : owns
