@@ -4,8 +4,7 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+```
 Classes: Owner, Pet, Task, Scheduler
 Owner class:
     Attributes: name, no of pets
@@ -18,13 +17,14 @@ Task class:
     Methods: View tasks, Add tasks
 Scheduler class:
     Attributes: task id, task title, task time
-    Methods: Prioritize tasks 
+    Methods: Prioritize tasks, View Daily routines
+```
 
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
-
+Added the view daily routines method to the scheduler class
 ---
 
 ## 2. Scheduling Logic and Tradeoffs

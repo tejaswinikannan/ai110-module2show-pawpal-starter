@@ -47,3 +47,6 @@ class Scheduler:
 
     def prioritize_tasks(self) -> list:
         pass
+
+    def view_daily_routines(self) -> list:
+        pass
