@@ -36,8 +36,8 @@ Scheduler class:
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+- `detect_conflicts` only flags tasks with the exact same `scheduled_time` string; it doesn't check for overlapping time ranges (e.g., a 08:00-08:30 task and a 08:15-08:20 task wouldn't be caught).
+- This is reasonable because `build_daily_schedule` always assigns times back-to-back, so true overlaps can only come from a manually pinned time (like a vet appointment). A simple grouping check (`O(n)`) covers that case without the added complexity of interval-overlap math (`O(n²)`), at the cost of occasionally missing a partial overlap rather than raising false alarms.
 
 ---
 

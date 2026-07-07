@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 from typing import ClassVar, Optional
 
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+UNRANKED_PRIORITY = len(PRIORITY_ORDER)
 DEFAULT_TASK_DURATIONS = {"feed": 10, "walk": 30}
 RECURRENCE_INTERVALS = {"daily": timedelta(days=1), "weekly": timedelta(weeks=1)}
 
@@ -133,7 +134,7 @@ class Scheduler:
         """Sort tasks by priority (high first), then by shorter duration."""
         return sorted(
             tasks,
-            key=lambda t: (PRIORITY_ORDER.get(t.priority, len(PRIORITY_ORDER)), t.duration_minutes),
+            key=lambda t: (PRIORITY_ORDER.get(t.priority, UNRANKED_PRIORITY), t.duration_minutes),
         )
 
     def sort_by_time(self, tasks: list["Task"]) -> list["Task"]:
