@@ -97,9 +97,21 @@ class Scheduler:
             key=lambda t: (PRIORITY_ORDER.get(t.priority, len(PRIORITY_ORDER)), t.duration_minutes),
         )
 
+    def sort_by_time(self, tasks: list["Task"]) -> list["Task"]:
+        """Sort tasks chronologically by scheduled_time ("HH:MM"), unscheduled tasks last."""
+        return sorted(tasks, key=lambda t: (t.scheduled_time is None, t.scheduled_time))
+
     def view_daily_routines(self, owner: Owner) -> list:
         """Return every task across all of an owner's pets."""
         return [task for pet in owner.pets for task in pet.tasks]
+
+    def filter_by_status(self, tasks: list["Task"], completed: bool) -> list["Task"]:
+        """Return only the tasks matching the given completion status."""
+        return [task for task in tasks if task.completed == completed]
+
+    def filter_by_pet(self, owner: Owner, pet_name: str) -> list["Task"]:
+        """Return the tasks belonging to the pet with the given name."""
+        return [task for pet in owner.pets for task in pet.tasks if pet.name == pet_name]
 
     def build_daily_schedule(
         self, owner: Owner, start_time: str = "08:00", available_minutes: Optional[int] = None
