@@ -1,0 +1,52 @@
+classDiagram
+    class Owner {
+        +String name
+        +int number_of_pets
+        +List~Pet~ pets
+        +create_owner(String) Owner$
+        +add_pet(Pet) Pet
+    }
+
+    class Pet {
+        +String pet_type
+        +String name
+        +List~Task~ tasks
+        +add_pet(String, String) Pet$
+        +feed() void
+        +schedule_walk() void
+        +complete_task(Task) Task
+    }
+
+    class Task {
+        +String task_title
+        +int task_id
+        +int duration_minutes
+        +String priority
+        +String scheduled_time
+        +bool completed
+        +String recurrence
+        +Date due_date
+        +add_task(String, int, String, String, Date) Task$
+        +next_occurrence() Task
+        +mark_complete() Task
+        +view_tasks() List
+    }
+
+    class Scheduler {
+        +int task_id
+        +String task_title
+        +String task_time
+        +prioritize_tasks(List~Task~) List~Task~
+        +sort_by_time(List~Task~) List~Task~
+        +view_daily_routines(Owner) List~Task~
+        +filter_by_status(List~Task~, bool) List~Task~
+        +filter_by_pet(Owner, String) List~Task~
+        +detect_conflicts(Owner) List~String~
+        +build_daily_schedule(Owner, String, int) List~Task~
+    }
+
+    Owner "1" o-- "0..*" Pet : owns
+    Pet "1" o-- "0..*" Task : has
+    Task "0..1" --> "0..1" Task : generates next occurrence
+    Scheduler ..> Owner : reads
+    Scheduler ..> Task : sorts / filters

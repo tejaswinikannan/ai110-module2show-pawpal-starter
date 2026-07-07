@@ -47,6 +47,8 @@ if "owner" not in st.session_state:
     st.session_state.owner = Owner.create_owner(owner_name)
 owner = st.session_state.owner
 
+scheduler = Scheduler()
+
 st.divider()
 
 st.subheader("Add a Pet")
@@ -84,7 +86,15 @@ if owner.pets:
                 pet.tasks.append(task)
 
             if pet.tasks:
-                st.table([task.view_tasks()[0] for task in pet.tasks])
+                pending_tasks = scheduler.sort_by_time(scheduler.filter_by_status(pet.tasks, completed=False))
+                completed_tasks = scheduler.filter_by_status(pet.tasks, completed=True)
+
+                if pending_tasks:
+                    st.table([task.view_tasks()[0] for task in pending_tasks])
+                if completed_tasks:
+                    st.success(f"✅ {len(completed_tasks)} task(s) completed for {pet.name}.")
+                if not pending_tasks and not completed_tasks:
+                    st.info("No tasks yet for this pet.")
             else:
                 st.info("No tasks yet for this pet.")
 else:
@@ -96,11 +106,11 @@ st.subheader("Build Schedule")
 st.caption("Prioritizes every pet's tasks and assigns start times.")
 
 if st.button("Generate schedule"):
-    scheduler = Scheduler()
-    todays_schedule = scheduler.build_daily_schedule(owner)
+    todays_schedule = scheduler.sort_by_time(scheduler.build_daily_schedule(owner))
 
     if todays_schedule:
         pet_name_by_task_id = {task.task_id: pet.name for pet in owner.pets for task in pet.tasks}
+        st.success(f"✅ Scheduled {len(todays_schedule)} task(s) for {owner.name}, in chronological order.")
         st.table(
             [
                 {
@@ -113,5 +123,12 @@ if st.button("Generate schedule"):
                 for task in todays_schedule
             ]
         )
+
+        conflicts = scheduler.detect_conflicts(owner)
+        if conflicts:
+            for warning in conflicts:
+                st.warning(f"⚠️ {warning}")
+        else:
+            st.success("No scheduling conflicts detected.")
     else:
         st.info("No tasks to schedule yet. Add a pet and some tasks above.")

@@ -98,7 +98,7 @@ test/test_pawpal.py::test_detect_conflicts_for_pet_with_no_tasks_returns_no_warn
 ============================= 15 passed in 0.05s ==============================
 ```
 
-**Confidence Level: ⭐⭐⭐⭐☆ (4/5)**
+**Confidence Level: (4/5)**
 
 All 15 tests pass, and the core scheduling behaviors (sorting, recurrence, conflict detection) are covered for both the happy path and their key edge cases. One star is held back because `detect_conflicts()` only flags tasks with an *identical* `scheduled_time` string — it won't catch overlapping-but-not-identical time windows (e.g., a 30-minute walk at 08:00 overlapping a feeding at 08:15), which isn't tested or handled yet.
 
@@ -115,12 +115,80 @@ All 15 tests pass, and the core scheduling behaviors (sorting, recurrence, confl
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+### UI features
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+The Streamlit app (`app.py`) lets a user:
+
+- Enter an **owner name**, which is kept in `st.session_state` for the session.
+- **Add a pet** (name + species) through a form.
+- For each pet, **feed** or **schedule a walk** with one click, or **add a custom task** (title, duration, priority) through a form.
+- View each pet's **pending tasks** in a table, sorted chronologically, with a separate success message summarizing how many tasks are already completed.
+- Click **Generate schedule** to prioritize and time-slot every pet's outstanding tasks into a single daily plan, with conflict warnings surfaced automatically.
+
+### Example workflow
+
+1. Enter an owner name (e.g., "Jordan") and add a pet (e.g., "Mochi", dog).
+2. Click **Feed** and **Schedule walk** to auto-add a feeding and walk task, then add a custom task (e.g., "Meds", 15 min, high priority) via the form.
+3. Repeat for a second pet (e.g., "Whiskers", cat) so there are tasks to compare across pets.
+4. Click **Generate schedule** — the app prioritizes all tasks, assigns start times back-to-back from 08:00, and displays the result in chronological order.
+5. If two tasks land on the same `scheduled_time`, a conflict warning appears; otherwise a success message confirms the schedule is conflict-free.
+
+### Key Scheduler behaviors demonstrated
+
+- **Sorting** — `sort_by_time()` orders tasks chronologically regardless of the order they were added or displayed in (see the "scrambled → restored" demo in `main.py` below).
+- **Filtering** — `filter_by_status()` separates pending vs. completed tasks; `filter_by_pet()` isolates one pet's tasks.
+- **Conflict warnings** — `detect_conflicts()` flags any tasks (even across different pets) that share the exact same `scheduled_time`.
+- **Recurrence** — completing a recurring task (via `Pet.complete_task()`) automatically schedules its next occurrence one interval later.
+
+### Sample CLI output (`python main.py`)
+
+`main.py` runs the same backend logic outside Streamlit — it builds an owner with two pets, deliberately scrambles the schedule to prove `sort_by_time()` restores it, runs the filtering demos, then manually books a vet appointment that collides with an existing walk to trigger conflict detection:
+
+```
+Today's Schedule for Jordan's pets
+----------------------------------------
+08:00 - Mochi: Feeding (10 min, high priority, pending)
+08:10 - Whiskers: Litter box cleaning (10 min, medium priority, pending)
+08:20 - Mochi: Walk (30 min, medium priority, pending)
+
+Schedule scrambled out of order
+----------------------------------------
+08:20 - Mochi: Walk (30 min, medium priority, pending)
+08:10 - Whiskers: Litter box cleaning (10 min, medium priority, pending)
+08:00 - Mochi: Feeding (10 min, high priority, pending)
+
+Schedule restored with sort_by_time()
+----------------------------------------
+08:00 - Mochi: Feeding (10 min, high priority, pending)
+08:10 - Whiskers: Litter box cleaning (10 min, medium priority, pending)
+08:20 - Mochi: Walk (30 min, medium priority, pending)
+
+Pending tasks only (filter_by_status)
+----------------------------------------
+08:20 - Mochi: Walk (30 min, medium priority, pending)
+08:00 - Mochi: Feeding (10 min, high priority, pending)
+08:10 - Whiskers: Litter box cleaning (10 min, medium priority, pending)
+
+Completed tasks only (filter_by_status)
+----------------------------------------
+--:-- - Whiskers: Grooming (15 min, low priority, done)
+
+Whiskers' tasks only (filter_by_pet)
+----------------------------------------
+--:-- - Whiskers: Grooming (15 min, low priority, done)
+08:10 - Whiskers: Litter box cleaning (10 min, medium priority, pending)
+
+Schedule with a manually booked Vet Checkup added
+----------------------------------------
+08:20 - Mochi: Walk (30 min, medium priority, pending)
+08:00 - Mochi: Feeding (10 min, high priority, pending)
+--:-- - Whiskers: Grooming (15 min, low priority, done)
+08:10 - Whiskers: Litter box cleaning (10 min, medium priority, pending)
+08:20 - Whiskers: Vet Checkup (20 min, high priority, pending)
+
+Conflict Check
+----------------------------------------
+WARNING: Conflict at 08:20: Mochi: Walk, Whiskers: Vet Checkup are scheduled at the same time.
+```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
