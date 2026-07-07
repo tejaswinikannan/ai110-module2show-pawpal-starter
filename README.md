@@ -57,19 +57,50 @@ Today's Schedule for Jordan's pets
 
 ## 🧪 Testing PawPal+
 
-```bash
-# Run the full test suite:
-pytest
+Run the suite from the project root:
 
-# Run with coverage:
-pytest --cov
+```bash
+python -m pytest -v
 ```
+
+The suite in [`test/test_pawpal.py`](test/test_pawpal.py) covers:
+
+- **Sorting correctness** — `Scheduler.sort_by_time()` orders tasks chronologically, pushes unscheduled (`scheduled_time=None`) tasks to the end, returns `[]` for a pet with no tasks, and preserves relative order when two tasks share the same time.
+- **Recurrence logic** — completing a `"daily"` or `"weekly"` task produces a new, incomplete `Task` due exactly one interval later (and appends it to the pet's task list); a task with no `due_date` falls back to today; a non-recurring task produces no follow-up.
+- **Conflict detection** — `Scheduler.detect_conflicts()` flags two tasks (even across different pets) scheduled at the exact same time, stays silent when times differ, and doesn't misfire on two unscheduled tasks or an owner/pet with no tasks at all.
 
 Sample test output:
 
 ```
-# Paste your pytest output here
+============================= test session starts =============================
+platform win32 -- Python 3.10.10, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\dteja\AppData\Local\Programs\Python\Python310\python.exe
+cachedir: .pytest_cache
+rootdir: E:\projects\codepath\ai110-module2show-pawpal-starter
+plugins: anyio-4.3.0, time-machine-2.14.0
+collecting ... collected 15 items
+
+test/test_pawpal.py::test_mark_complete_changes_task_status PASSED       [  6%]
+test/test_pawpal.py::test_adding_task_increases_pet_task_count PASSED    [ 13%]
+test/test_pawpal.py::test_sort_by_time_returns_chronological_order PASSED [ 20%]
+test/test_pawpal.py::test_sort_by_time_places_unscheduled_tasks_last PASSED [ 26%]
+test/test_pawpal.py::test_sort_by_time_empty_pet_returns_empty_list PASSED [ 33%]
+test/test_pawpal.py::test_sort_by_time_is_stable_for_identical_times PASSED [ 40%]
+test/test_pawpal.py::test_completing_daily_task_creates_task_for_following_day PASSED [ 46%]
+test/test_pawpal.py::test_completing_weekly_task_creates_task_for_following_week PASSED [ 53%]
+test/test_pawpal.py::test_completing_task_without_due_date_defaults_to_today PASSED [ 60%]
+test/test_pawpal.py::test_completing_non_recurring_task_creates_no_next_task PASSED [ 66%]
+test/test_pawpal.py::test_detect_conflicts_flags_duplicate_times PASSED  [ 73%]
+test/test_pawpal.py::test_detect_conflicts_no_warning_for_unique_times PASSED [ 80%]
+test/test_pawpal.py::test_detect_conflicts_ignores_unscheduled_tasks PASSED [ 86%]
+test/test_pawpal.py::test_detect_conflicts_for_owner_with_no_pets_returns_no_warnings PASSED [ 93%]
+test/test_pawpal.py::test_detect_conflicts_for_pet_with_no_tasks_returns_no_warnings PASSED [100%]
+
+============================= 15 passed in 0.05s ==============================
 ```
+
+**Confidence Level: ⭐⭐⭐⭐☆ (4/5)**
+
+All 15 tests pass, and the core scheduling behaviors (sorting, recurrence, conflict detection) are covered for both the happy path and their key edge cases. One star is held back because `detect_conflicts()` only flags tasks with an *identical* `scheduled_time` string — it won't catch overlapping-but-not-identical time windows (e.g., a 30-minute walk at 08:00 overlapping a feeding at 08:15), which isn't tested or handled yet.
 
 ## 📐 Smarter Scheduling
 
