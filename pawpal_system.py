@@ -1,11 +1,12 @@
 """Core implementation for PawPal+, generated from diagrams/uml.mmd."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import ClassVar, Optional
 
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 DEFAULT_TASK_DURATIONS = {"feed": 10, "walk": 30}
+RECURRENCE_INTERVALS = {"daily": timedelta(days=1), "weekly": timedelta(weeks=1)}
 
 
 @dataclass
@@ -47,6 +48,13 @@ class Pet:
         task = Task.add_task("Walk", duration_minutes=DEFAULT_TASK_DURATIONS["walk"], priority="medium")
         self.tasks.append(task)
 
+    def complete_task(self, task: "Task") -> Optional["Task"]:
+        """Mark a task complete and, if it recurs, add its next occurrence to this pet's tasks."""
+        next_task = task.mark_complete()
+        if next_task is not None:
+            self.tasks.append(next_task)
+        return next_task
+
 
 @dataclass
 class Task:
@@ -56,19 +64,50 @@ class Task:
     priority: str = "medium"
     scheduled_time: Optional[str] = None
     completed: bool = False
+    recurrence: Optional[str] = None
+    due_date: Optional[date] = None
 
     _next_id: ClassVar[int] = 1
 
     @classmethod
-    def add_task(cls, task_title: str, duration_minutes: int = 20, priority: str = "medium") -> "Task":
+    def add_task(
+        cls,
+        task_title: str,
+        duration_minutes: int = 20,
+        priority: str = "medium",
+        recurrence: Optional[str] = None,
+        due_date: Optional[date] = None,
+    ) -> "Task":
         """Create a new Task with an auto-assigned, unique task_id."""
-        task = cls(task_title=task_title, task_id=cls._next_id, duration_minutes=duration_minutes, priority=priority)
+        task = cls(
+            task_title=task_title,
+            task_id=cls._next_id,
+            duration_minutes=duration_minutes,
+            priority=priority,
+            recurrence=recurrence,
+            due_date=due_date,
+        )
         cls._next_id += 1
         return task
 
-    def mark_complete(self) -> None:
-        """Mark this task as completed."""
+    def next_occurrence(self) -> Optional["Task"]:
+        """If this task recurs, build the next Task instance due one interval later."""
+        interval = RECURRENCE_INTERVALS.get(self.recurrence)
+        if interval is None:
+            return None
+        base_date = self.due_date or date.today()
+        return Task.add_task(
+            self.task_title,
+            duration_minutes=self.duration_minutes,
+            priority=self.priority,
+            recurrence=self.recurrence,
+            due_date=base_date + interval,
+        )
+
+    def mark_complete(self) -> Optional["Task"]:
+        """Mark this task as completed and, if it recurs, return the next occurrence."""
         self.completed = True
+        return self.next_occurrence()
 
     def view_tasks(self) -> list:
         """Return this task's fields as a single-row, display-ready list."""
