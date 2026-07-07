@@ -152,6 +152,25 @@ class Scheduler:
         """Return the tasks belonging to the pet with the given name."""
         return [task for pet in owner.pets for task in pet.tasks if pet.name == pet_name]
 
+    def detect_conflicts(self, owner: Owner) -> list[str]:
+        """Return a warning message for every group of tasks scheduled at the exact same time."""
+        pet_name_by_task_id = {task.task_id: pet.name for pet in owner.pets for task in pet.tasks}
+
+        tasks_by_time: dict[str, list[Task]] = {}
+        for task in self.view_daily_routines(owner):
+            if task.scheduled_time is None:
+                continue
+            tasks_by_time.setdefault(task.scheduled_time, []).append(task)
+
+        warnings = []
+        for scheduled_time, tasks in tasks_by_time.items():
+            if len(tasks) < 2:
+                continue
+            task_labels = ", ".join(f"{pet_name_by_task_id[t.task_id]}: {t.task_title}" for t in tasks)
+            warnings.append(f"Conflict at {scheduled_time}: {task_labels} are scheduled at the same time.")
+
+        return warnings
+
     def build_daily_schedule(
         self, owner: Owner, start_time: str = "08:00", available_minutes: Optional[int] = None
     ) -> list["Task"]:

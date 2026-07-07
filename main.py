@@ -50,3 +50,22 @@ all_tasks = scheduler.view_daily_routines(owner)
 print_tasks("Pending tasks only (filter_by_status)", scheduler.filter_by_status(all_tasks, completed=False))
 print_tasks("Completed tasks only (filter_by_status)", scheduler.filter_by_status(all_tasks, completed=True))
 print_tasks("Whiskers' tasks only (filter_by_pet)", scheduler.filter_by_pet(owner, "Whiskers"))
+
+# Conflict detection demo: a manually fixed vet appointment for Whiskers
+# happens to land at the same time Mochi's walk was already auto-scheduled.
+vet_appointment = Task.add_task("Vet Checkup", duration_minutes=20, priority="high")
+vet_appointment.scheduled_time = todays_schedule[-1].scheduled_time
+whiskers.tasks.append(vet_appointment)
+pet_name_by_task_id[vet_appointment.task_id] = whiskers.name
+
+print_tasks("Schedule with a manually booked Vet Checkup added", scheduler.view_daily_routines(owner))
+
+print("Conflict Check")
+print("-" * 40)
+conflicts = scheduler.detect_conflicts(owner)
+if conflicts:
+    for warning in conflicts:
+        print(f"WARNING: {warning}")
+else:
+    print("No conflicts detected.")
+print()
